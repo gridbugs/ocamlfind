@@ -3,6 +3,7 @@
  *
  *)
 
+open Fl_compat
 
 let in_words s =
   (* splits s in words separated by commas and/or whitespace *)
@@ -144,3 +145,50 @@ let norm_dir s =
     | "Win32" -> norm_dir_win(); Buffer.contents b
     | _ -> failwith "This os_type is not supported"
 ;;
+
+type segment =
+  | Root
+  | Element of string
+  | Parent
+;;
+
+let interpret segments =
+  let interpret1 stack segment =
+    match segment with
+    | Root as e -> e::stack
+    | Element _ as e -> e::stack
+    | Parent ->
+        match stack with
+        | [] -> [Parent]
+        | Element _ :: stack -> stack
+        | Root :: stack -> Root::stack
+        | Parent :: stack -> Parent::stack
+  in
+  List.fold_left interpret1 [] segments
+  |> List.rev
+;;
+
+let realpath s =
+  (* TODO consider using Filename.dir_sep *)
+  let segments =
+    String.split_on_char '/' s
+    |> List.fold_left (fun acc segment ->
+      match segment with
+      | "" -> (match acc with [] -> [Root] | otherwise -> otherwise)
+      | _ when segment = Filename.current_dir_name -> acc
+      | _ when segment = Filename.parent_dir_name -> Parent::acc
+      | name -> (Element name)::acc
+      ) []
+    |> List.rev
+    |> interpret
+    |> List.map (function
+      | Root -> "/"
+      | Element s -> s
+      | Parent -> Filename.parent_dir_name)
+  in
+  let path = match segments with
+    | [] -> ""
+    | "/"::segments -> "/" ^ (String.concat "/" segments)
+    | segments -> String.concat "/" segments
+  in
+  path

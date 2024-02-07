@@ -22,9 +22,9 @@ OCAMLLEX = ocamllex
 #CAMLP4O =  camlp4 pa_o.cmo pa_op.cmo pr_dump.cmo --
 
 
-OBJECTS        = findlib_config.cmo fl_split.cmo fl_metatoken.cmo fl_meta.cmo \
-		 fl_metascanner.cmo fl_topo.cmo fl_package_base.cmo \
-	         findlib.cmo fl_args.cmo fl_lint.cmo
+OBJECTS        = fl_compat.cmo fl_split.cmo findlib_config.cmo \
+		 fl_metatoken.cmo fl_meta.cmo fl_metascanner.cmo fl_topo.cmo \
+		 fl_package_base.cmo findlib.cmo fl_args.cmo fl_lint.cmo
 TOBJECTS       = topfind.cmo
 
 XOBJECTS       = $(OBJECTS:.cmo=.cmx)
@@ -55,14 +55,14 @@ ocamlfind$(EXEC_SUFFIX): findlib.cma $(OCAMLFIND_OBJECTS)
 	          $(OCAMLC_FLAGS) $(OCAMLFIND_OCAMLFLAGS) $(OCAMLFIND_OBJECTS)
 
 ocamlfind_opt$(EXEC_SUFFIX): findlib.cmxa $(OCAMLFIND_XOBJECTS)
-	$(OCAMLOPT) -o ocamlfind_opt$(EXEC_SUFFIX) $(OCAMLFIND_XARCHIVES) \
+	$(OCAMLOPT) -o ocamlfind_opt$(EXEC_SUFFIX) unix.cmxa $(OCAMLFIND_XARCHIVES) \
 		  $(OCAMLOPT_FLAGS) $(OCAMLFIND_OCAMLFLAGS) $(OCAMLFIND_XOBJECTS)
 
 test_parser$(EXEC_SUFFIX): fl_metascanner.cmx test_parser.cmx fl_metatoken.cmx fl_meta.cmx
 	$(OCAMLOPT) -o test_parser$(EXEC_SUFFIX) fl_meta.cmx fl_metatoken.cmx fl_metascanner.cmx test_parser.cmx
 
 findlib.cma: $(OBJECTS)
-	$(OCAMLC) -a -o findlib.cma $(OBJECTS)
+	$(OCAMLC) -a -o findlib.cma unix.cma $(OBJECTS)
 
 findlib_top.cma: $(TOBJECTS)
 	$(OCAMLC) -a -o findlib_top.cma $(TOBJECTS)
@@ -94,6 +94,7 @@ findlib_config.ml: findlib_config.mlp $(TOP)/Makefile.config
 	cat findlib_config.mlp | \
 	        $(SH) $(TOP)/tools/patch '@CONFIGFILE@' '$(OCAMLFIND_CONF)' | \
 	        $(SH) $(TOP)/tools/patch '@STDLIB@' '$(OCAML_CORE_STDLIB)' | \
+	        $(SH) $(TOP)/tools/patch '@RELATIVE_PATHS@' '$(RELATIVE_PATHS)' | \
 		sed -e 's;@AUTOLINK@;$(OCAML_AUTOLINK);g' \
 		    -e 's;@SYSTEM@;$(SYSTEM);g' \
 		     >findlib_config.ml
