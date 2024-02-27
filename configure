@@ -735,7 +735,7 @@ if [ $cbytes -gt 0 ]; then
     ocamlfind_archives="bytes.cma ${ocamlfind_archives}"
 fi
 
-relative_site_lib=$(echo ${ocaml_sitelib} | sed -e "s#^${ocaml_prefix}#\$PREFIX#")
+relative_site_lib=$(echo "${ocaml_sitelib}" | sed -e "s#^${ocaml_prefix}#\$PREFIX#")
 
 if [ $with_relative_paths -gt 0 ]; then
     # if configured with relative paths we add the relative path to the search path
