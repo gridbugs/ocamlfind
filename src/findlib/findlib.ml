@@ -115,7 +115,7 @@ let command_names cmd_spec =
 let auto_config_file() =
   let p =
     ( try Sys.getenv "OCAMLFIND_CONF" with Not_found -> "") in
-  if p = "" then Fl_split.realpath (Lazy.force Findlib_config.config_file) else p
+  if p = "" then Lazy.force Findlib_config.config_file else p
 
 let relocatable_path path =
   let prefix = "$PREFIX" in
@@ -133,7 +133,7 @@ let relocate_paths paths =
       | Some path -> (
         match Lazy.force Findlib_config.location with
         | Some install_location ->
-          Filename.concat install_location path |> Fl_split.realpath
+          Filename.concat install_location path
         | None -> path))
   in
   let sep = String.make 1 Fl_split.path_separator in
