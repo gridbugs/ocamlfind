@@ -53,7 +53,7 @@ let install_dir_from_opam_switch_prefix path =
   | false -> None
   | true -> Some path
 
-let default = "@CONFIGFILE"
+let default = "@CONFIGFILE@"
 let fallback = Option.value ~default
 
 let rec try_vars = function
