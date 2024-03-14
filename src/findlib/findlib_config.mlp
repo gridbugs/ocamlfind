@@ -75,9 +75,11 @@ let location = lazy (
   let base = Filename.basename command_name in
   match base with
   | "ocamlfind" as name -> (
-    let exe_location = Unix.readlink "/proc/self/exe" in
-    match install_dir_from_binary exe_location with
-    | Some install_dir -> Some install_dir
+    match Lazy.force Fl_bindings.executable_path with
+    | Some exe_location -> (
+      match install_dir_from_binary exe_location with
+      | Some install_dir -> Some install_dir
+      | None -> find_in_path name)
     | None -> find_in_path name)
   | _ ->
     try_vars [

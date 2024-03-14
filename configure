@@ -723,8 +723,8 @@ fi
 # Write Makefile.config
 
 parts="findlib"
-ocamlfind_ocamlflags="-I +dynlink"
-ocamlfind_archives="findlib.cma"
+ocamlfind_ocamlflags="-I +unix -I +dynlink"
+ocamlfind_archives="findlib.cma unix.cma"
 if [ $with_toolbox -gt 0 ]; then
     parts="$parts findlib-toolbox"
 fi

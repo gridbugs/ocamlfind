@@ -22,16 +22,17 @@ OCAMLLEX = ocamllex
 #CAMLP4O =  camlp4 pa_o.cmo pa_op.cmo pr_dump.cmo --
 
 
-OBJECTS        = fl_compat.cmo fl_split.cmo findlib_config.cmo \
+OBJECTS        = fl_compat.cmo fl_split.cmo fl_bindings.cmo findlib_config.cmo \
 		 fl_metatoken.cmo fl_meta.cmo fl_metascanner.cmo fl_topo.cmo \
 		 fl_package_base.cmo findlib.cmo fl_args.cmo fl_lint.cmo
+COBJECTS       = fl_stubs.o
 TOBJECTS       = topfind.cmo
 
 XOBJECTS       = $(OBJECTS:.cmo=.cmx)
-TXOBJECTS      = topfind.cmx
+TXOBJECTS      = $(TOBJECTS:.cmo=.cmx)
 
 OCAMLFIND_OBJECTS = ocaml_args.cmo frontend.cmo
-OCAMLFIND_XOBJECTS = ocaml_args.cmx frontend.cmx
+OCAMLFIND_XOBJECTS = $(OCAMLFIND_OBJECTS:.cmo=.cmx)
 
 # OCAMLFIND_ARCHIVES: set in Makefile.config
 OCAMLFIND_XARCHIVES = $(OCAMLFIND_ARCHIVES:.cma=.cmxa)
@@ -55,22 +56,22 @@ ocamlfind$(EXEC_SUFFIX): findlib.cma $(OCAMLFIND_OBJECTS)
 	          $(OCAMLC_FLAGS) $(OCAMLFIND_OCAMLFLAGS) $(OCAMLFIND_OBJECTS)
 
 ocamlfind_opt$(EXEC_SUFFIX): findlib.cmxa $(OCAMLFIND_XOBJECTS)
-	$(OCAMLOPT) -o ocamlfind_opt$(EXEC_SUFFIX) unix.cmxa $(OCAMLFIND_XARCHIVES) \
+	$(OCAMLOPT) -o ocamlfind_opt$(EXEC_SUFFIX) $(OCAMLFIND_XARCHIVES) \
 		  $(OCAMLOPT_FLAGS) $(OCAMLFIND_OCAMLFLAGS) $(OCAMLFIND_XOBJECTS)
 
 test_parser$(EXEC_SUFFIX): fl_metascanner.cmx test_parser.cmx fl_metatoken.cmx fl_meta.cmx
 	$(OCAMLOPT) -o test_parser$(EXEC_SUFFIX) fl_meta.cmx fl_metatoken.cmx fl_metascanner.cmx test_parser.cmx
 
-findlib.cma: $(OBJECTS)
-	$(OCAMLC) -a -o findlib.cma unix.cma $(OBJECTS)
+findlib.cma: $(OBJECTS) $(COBJECTS)
+	$(OCAMLC) -a -o findlib.cma $(OBJECTS) $(COBJECTS)
 
 findlib_top.cma: $(TOBJECTS)
 	$(OCAMLC) -a -o findlib_top.cma $(TOBJECTS)
 
-findlib.cmxa: $(XOBJECTS)
-	$(OCAMLOPT) -a -o findlib.cmxa $(XOBJECTS)
+findlib.cmxa: $(XOBJECTS) $(COBJECTS)
+	$(OCAMLOPT) -a -o findlib.cmxa $(XOBJECTS) $(COBJECTS)
 	if [ $(HAVE_NATDYNLINK) -gt 0 ]; then \
-	    $(OCAMLOPT_SHARED) -shared -o findlib.cmxs $(XOBJECTS); \
+	    $(OCAMLOPT_SHARED) -shared -o findlib.cmxs $(XOBJECTS) $(COBJECTS); \
 	fi
 
 findlib_top.cmxa: $(TXOBJECTS)
@@ -162,7 +163,7 @@ depend: *.ml *.mli fl_meta.ml fl_metascanner.ml findlib_config.ml topfind.ml
 
 # Some 'make' implementations require that .SUFFIXES must occur before
 # the first suffix rule. (E.g. AIX)
-.SUFFIXES: .mll .cmo .cmi .cmx .ml .mli .mml
+.SUFFIXES: .mll .cmo .cmi .cmx .ml .mli .mml .o
 # .src
 
 .mml.cmo:
@@ -179,6 +180,9 @@ depend: *.ml *.mli fl_meta.ml fl_metascanner.ml findlib_config.ml topfind.ml
 
 .mli.cmi:
 	$(OCAMLC) $(OPAQUE)  $(OCAMLC_FLAGS) $(OCAMLFIND_OCAMLFLAGS) -c $<
+
+.c.o:
+	$(OCAMLC) $(OPAQUE) $(OCAMLC_FLAGS) $(OCAMLFIND_OCAMLFLAGS) -c $<
 
 #.src.ml:
 #	$(CAMLP4O) -impl $< -o $@
