@@ -71,21 +71,11 @@ let uses_relative_paths = @RELATIVE_PATHS@
 
 (* the location where we assume to be installed in *)
 let location = lazy (
-  let command_name = Sys.argv.(0) in
-  let base = Filename.basename command_name in
-  match base with
-  | "ocamlfind" as name -> (
-    match Lazy.force Fl_bindings.executable_path with
-    | Some exe_location -> (
-      match install_dir_from_binary exe_location with
-      | Some install_dir -> Some install_dir
-      | None -> find_in_path name)
-    | None -> find_in_path name)
-  | _ ->
-    try_vars [
-      ("CAML_LD_LIBRARY_PATH", install_dir_from_ld_library_path);
-      ("OCAML_TOPLEVEL_PATH", install_dir_from_ocaml_toplevel_path);
-      ("OPAM_SWITCH_PREFIX", install_dir_from_opam_switch_prefix)])
+  try_vars [
+    ("OPAM_SWITCH_PREFIX", install_dir_from_opam_switch_prefix);
+    ("CAML_LD_LIBRARY_PATH", install_dir_from_ld_library_path);
+    ("OCAML_TOPLEVEL_PATH", install_dir_from_ocaml_toplevel_path);
+  ])
 
 let findlib_conf = lazy (
   match Lazy.force location with

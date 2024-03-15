@@ -22,10 +22,9 @@ OCAMLLEX = ocamllex
 #CAMLP4O =  camlp4 pa_o.cmo pa_op.cmo pr_dump.cmo --
 
 
-OBJECTS        = fl_compat.cmo fl_split.cmo fl_bindings.cmo findlib_config.cmo \
+OBJECTS        = fl_compat.cmo fl_split.cmo findlib_config.cmo \
 		 fl_metatoken.cmo fl_meta.cmo fl_metascanner.cmo fl_topo.cmo \
 		 fl_package_base.cmo findlib.cmo fl_args.cmo fl_lint.cmo
-COBJECTS       = fl_stubs.o
 TOBJECTS       = topfind.cmo
 
 XOBJECTS       = $(OBJECTS:.cmo=.cmx)
@@ -62,16 +61,16 @@ ocamlfind_opt$(EXEC_SUFFIX): findlib.cmxa $(OCAMLFIND_XOBJECTS)
 test_parser$(EXEC_SUFFIX): fl_metascanner.cmx test_parser.cmx fl_metatoken.cmx fl_meta.cmx
 	$(OCAMLOPT) -o test_parser$(EXEC_SUFFIX) fl_meta.cmx fl_metatoken.cmx fl_metascanner.cmx test_parser.cmx
 
-findlib.cma: $(OBJECTS) $(COBJECTS)
-	$(OCAMLC) -a -o findlib.cma $(OBJECTS) $(COBJECTS)
+findlib.cma: $(OBJECTS)
+	$(OCAMLC) -a -o findlib.cma $(OBJECTS)
 
 findlib_top.cma: $(TOBJECTS)
 	$(OCAMLC) -a -o findlib_top.cma $(TOBJECTS)
 
-findlib.cmxa: $(XOBJECTS) $(COBJECTS)
-	$(OCAMLOPT) -a -o findlib.cmxa $(XOBJECTS) $(COBJECTS)
+findlib.cmxa: $(XOBJECTS)
+	$(OCAMLOPT) -a -o findlib.cmxa $(XOBJECTS)
 	if [ $(HAVE_NATDYNLINK) -gt 0 ]; then \
-	    $(OCAMLOPT_SHARED) -shared -o findlib.cmxs $(XOBJECTS) $(COBJECTS); \
+	    $(OCAMLOPT_SHARED) -shared -o findlib.cmxs $(XOBJECTS); \
 	fi
 
 findlib_top.cmxa: $(TXOBJECTS)
