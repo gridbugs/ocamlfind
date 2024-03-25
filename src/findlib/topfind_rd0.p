@@ -4,8 +4,8 @@
  * working findlib toploop.
  *)
 
-#directory "@SITELIB@/findlib";;
-  (* OCaml-4.00 requires to have #directory before we load anything *)
+let () = Topdirs.dir_directory findlib_directory in
+  (* OCaml-4.00 requires to use dir_directory before we load anything *)
 
 (* First test whether findlib_top is already loaded. If not, load it now.
  * The test works by executing the toplevel phrase "Topfind.reset" and
@@ -22,8 +22,8 @@ let exec_test s =
 in
 
 if not(exec_test "Topfind.reset;;") then (
-  Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib.cma";
-  Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib_top.cma";
+  Topdirs.dir_load Format.err_formatter (Filename.concat findlib_directory "findlib.cma");
+  Topdirs.dir_load Format.err_formatter (Filename.concat findlib_directory "findlib_top.cma");
 );;
 
 (* Old: *)

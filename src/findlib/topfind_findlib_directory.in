@@ -1,0 +1,57 @@
+(* include for `topfind`, provides the `findlib_directory` path *)
+
+let exists path =
+  match Sys.file_exists path with
+  | true -> Some path
+  | false -> None
+in
+
+let findlib_conf_of_path path =
+  let ( / ) = Filename.concat in
+  match exists (path / "etc" / "findlib.conf") with
+  | Some etc_path -> etc_path
+  | None -> path / "lib" / "findlib.conf"
+in
+
+let install_dir_from_opam_switch_prefix path =
+  match Sys.file_exists (findlib_conf_of_path path) with
+  | false -> None
+  | true -> Some path
+in
+
+let install_dir_from_ocaml_toplevel_path path =
+  let exe_dir = Filename.dirname path in
+  let install_dir = Filename.dirname exe_dir in
+  let config_path = findlib_conf_of_path install_dir in
+  match Sys.file_exists config_path with
+  | true -> Some install_dir
+  | false -> None
+in
+
+let getenv_opt v = try Some (Sys.getenv v) with Not_found -> None in
+
+let rec try_vars = function
+  | [] -> None
+  | (var, mapper)::xs -> (
+    match getenv_opt var with
+    | None -> try_vars xs
+    | Some content -> (
+      match mapper content with
+      | None -> try_vars xs
+      | Some _ as found -> found))
+in
+
+let location =
+  match try_vars [
+    ("OPAM_SWITCH_PREFIX", install_dir_from_opam_switch_prefix);
+    ("OCAML_TOPLEVEL_PATH", install_dir_from_ocaml_toplevel_path);
+  ] with
+  | Some location -> location
+  | None -> "@SITELIB@"
+in
+
+let findlib_directory = match @RELATIVE_PATHS@ with
+  | true -> Filename.concat location "findlib"
+  | false -> "@SITELIB@/findlib"
+in
+

@@ -4,8 +4,8 @@
  * working findlib toploop.
  *)
 
-#directory "@SITELIB@/findlib";;
-  (* OCaml-4.00 requires to have #directory before we load anything *)
+let () = Topdirs.dir_directory findlib_directory in
+  (* OCaml-4.00 requires to use dir_directory before we load anything *)
 
 #directory "+compiler-libs";;
   (* For OCaml-4.00. This directory will be later removed from path *)
@@ -29,8 +29,8 @@ let is_native =
 let suffix =
   if is_native then "cmxs" else "cma" in
 if not(exec_test "Topfind.reset;;") then (
-  Topdirs.dir_load Format.err_formatter ("@SITELIB@/findlib/findlib." ^ suffix);
-  Topdirs.dir_load Format.err_formatter ("@SITELIB@/findlib/findlib_top." ^ suffix);
+  Topdirs.dir_load Format.err_formatter ((Filename.concat findlib_directory "findlib.") ^ suffix);
+  Topdirs.dir_load Format.err_formatter ((Filename.concat findlib_directory "findlib_top.") ^ suffix);
 );
 ;;
 

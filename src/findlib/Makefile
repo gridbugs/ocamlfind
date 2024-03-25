@@ -107,11 +107,14 @@ topfind.ml: topfind.ml.in
 			> topfind.ml ;                                   \
 	fi
 
-topfind: topfind_rd$(OCAML_REMOVE_DIRECTORY).p
+topfind: topfind_rd$(OCAML_REMOVE_DIRECTORY).p topfind_findlib_directory.in
 	USE_CYGPATH="$(USE_CYGPATH)"; \
 	export USE_CYGPATH; \
-	cat topfind_rd$(OCAML_REMOVE_DIRECTORY).p | \
-	        $(SH) $(TOP)/tools/patch '@SITELIB@' '$(OCAML_SITELIB)' \
+	cat \
+		topfind_findlib_directory.in \
+		topfind_rd$(OCAML_REMOVE_DIRECTORY).p | \
+	        $(SH) $(TOP)/tools/patch '@SITELIB@' '$(OCAML_SITELIB)' | \
+	        $(SH) $(TOP)/tools/patch '@RELATIVE_PATHS@' '$(RELATIVE_PATHS)' \
 	    	    >topfind
 
 num_top.cma: $(NUMTOP_OBJECTS)
