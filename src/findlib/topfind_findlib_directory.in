@@ -28,6 +28,46 @@ let install_dir_from_ocaml_toplevel_path path =
   | false -> None
 in
 
+let fl_split_path_separator =
+  match Sys.os_type with
+    | "Unix" | "BeOS"   -> ':'
+    | "Cygwin" -> ';'   (* You might want to change this *)
+    | "Win32"  -> ';'
+    | "MacOS"  -> failwith "Findlib: I do not know what is the correct path separator for MacOS. If you can help me, write a mail to gerd@gerd-stolpmann.de"
+    | _ -> failwith "Findlib: unknown operating system"
+in
+
+let string_split_on_char sep s =
+  let r = ref [] in
+  let j = ref (String.length s) in
+  for i = String.length s - 1 downto 0 do
+    if String.unsafe_get s i = sep then begin
+      r := String.sub s (i + 1) (!j - i - 1) :: !r;
+      j := i
+    end
+  done;
+  String.sub s 0 !j :: !r
+in
+
+let rec list_find_map f = function
+  | [] -> None
+  | x :: l ->
+     begin match f x with
+       | Some _ as result -> result
+       | None -> list_find_map f l
+     end
+in
+
+let install_dir_from_ld_library_path paths =
+  let v = string_split_on_char fl_split_path_separator paths in
+  list_find_map (fun path ->
+    let parent = Filename.dirname path in
+    let parent' = Filename.dirname parent in
+    match Sys.file_exists (findlib_conf_of_path parent') with
+    | true -> Some parent'
+    | false -> None) v
+in
+
 let getenv_opt v = try Some (Sys.getenv v) with Not_found -> None in
 
 let rec try_vars = function
@@ -44,6 +84,7 @@ in
 let location =
   match try_vars [
     ("OPAM_SWITCH_PREFIX", install_dir_from_opam_switch_prefix);
+    ("CAML_LD_LIBRARY_PATH", install_dir_from_ld_library_path);
     ("OCAML_TOPLEVEL_PATH", install_dir_from_ocaml_toplevel_path);
   ] with
   | Some location -> location
