@@ -116,10 +116,8 @@ let exec_test s =
       _ -> false
 in
 
-let is_native =
-  (* one of the few observable differences... *)
-  Gc.((get()).stack_limit) = 0
-in
+(* one of the few observable differences... *)
+let is_native = (Gc.get ()).Gc.stack_limit = 0 in
 
 let suffix = if is_native then "cmxs" else "cma" in
 
