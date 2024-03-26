@@ -10,8 +10,9 @@ let exists path =
   | false -> None
 in
 
+let ( / ) = Filename.concat in
+
 let findlib_conf_of_path path =
-  let ( / ) = Filename.concat in
   match exists (path / "etc" / "findlib.conf") with
   | Some etc_path -> etc_path
   | None -> path / "lib" / "findlib.conf"
@@ -96,7 +97,7 @@ let location =
 in
 
 let findlib_directory = match @RELATIVE_PATHS@ with
-  | true -> Filename.concat location "findlib"
+  | true -> location / "lib" / "findlib"
   | false -> "@SITELIB@/findlib"
 in
 
