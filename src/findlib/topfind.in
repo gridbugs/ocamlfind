@@ -1,4 +1,8 @@
-(* include for `topfind`, provides the `findlib_directory` path *)
+(* $Id$ -*- tuareg -*- *)
+
+(* For Ocaml-3.03 and up, so you can do: #use "topfind" and get a
+ * working findlib toploop.
+ *)
 
 let exists path =
   match Sys.file_exists path with
@@ -96,3 +100,49 @@ let findlib_directory = match @RELATIVE_PATHS@ with
   | false -> "@SITELIB@/findlib"
 in
 
+let () = Topdirs.dir_directory findlib_directory in
+  (* OCaml-4.00 requires to use dir_directory before we load anything *)
+
+let () = Topdirs.dir_directory "+compiler-libs" in
+  (* For OCaml-4.00. This directory will be later removed from path if possible *)
+
+let exec_test s =
+  let l = Lexing.from_string s in
+  let ph = !Toploop.parse_toplevel_phrase l in
+  let fmt = Format.make_formatter (fun _ _ _ -> ()) (fun _ -> ()) in
+  try
+    Toploop.execute_phrase false fmt ph
+  with
+      _ -> false
+in
+
+let is_native =
+  (* one of the few observable differences... *)
+  Gc.((get()).stack_limit) = 0
+in
+
+let suffix = if is_native then "cmxs" else "cma" in
+
+(* First test whether findlib_top is already loaded. If not, load it now.
+ * The test works by executing the toplevel phrase "Topfind.reset" and
+ * checking whether this causes an error.
+ *)
+let () =
+  if not (exec_test "Topfind.reset;;") then (
+    Topdirs.dir_load Format.err_formatter (Filename.concat findlib_directory ("findlib." ^ suffix));
+    Topdirs.dir_load Format.err_formatter (Filename.concat findlib_directory ("findlib_top." ^ suffix)))
+in
+
+(* REMOVE_DIRECTORY_BEGIN *)
+(* OCaml < 4.00 do not have this so only include this code if it was detected *)
+let () = Topdirs.dir_remove_directory "+compiler-libs" in
+(* REMOVE_DIRECTORY_END *)
+
+(* The following is always executed. It is harmless if findlib was already
+ * initialized
+ *)
+let pred = if is_native then "native" else "byte" in
+
+Topfind.add_predicates [ pred; "toploop" ];
+Topfind.don't_load ["findlib"];
+Topfind.announce ();;

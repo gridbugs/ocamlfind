@@ -107,12 +107,18 @@ topfind.ml: topfind.ml.in
 			> topfind.ml ;                                   \
 	fi
 
-topfind: topfind_rd$(OCAML_REMOVE_DIRECTORY).p topfind_findlib_directory.in
+topfind.compat.in: topfind.in
+	if [ "$(OCAML_REMOVE_DIRECTORY)" = "1" ]; then                        \
+		cp $< $@;                                                     \
+	else                                                                  \
+		sed -e '/REMOVE_DIRECTORY_BEGIN/,/REMOVE_DIRECTORY_END/ d' $< \
+			> $@ ;                                                \
+	fi
+
+topfind: topfind.compat.in
 	USE_CYGPATH="$(USE_CYGPATH)"; \
 	export USE_CYGPATH; \
-	cat \
-		topfind_findlib_directory.in \
-		topfind_rd$(OCAML_REMOVE_DIRECTORY).p | \
+	cat topfind.compat.in | \
 	        $(SH) $(TOP)/tools/patch '@SITELIB@' '$(OCAML_SITELIB)' | \
 	        $(SH) $(TOP)/tools/patch '@RELATIVE_PATHS@' '$(RELATIVE_PATHS)' \
 	    	    >topfind
