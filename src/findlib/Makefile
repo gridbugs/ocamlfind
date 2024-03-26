@@ -189,9 +189,6 @@ depend: *.ml *.mli fl_meta.ml fl_metascanner.ml findlib_config.ml topfind.ml
 .mli.cmi:
 	$(OCAMLC) $(OPAQUE)  $(OCAMLC_FLAGS) $(OCAMLFIND_OCAMLFLAGS) -c $<
 
-.c.o:
-	$(OCAMLC) $(OPAQUE) $(OCAMLC_FLAGS) $(OCAMLFIND_OCAMLFLAGS) -c $<
-
 #.src.ml:
 #	$(CAMLP4O) -impl $< -o $@
 
